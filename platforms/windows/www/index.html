@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Your App">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="apple-touch-icon" href="img/appIcon.png">
+
+    <!--jquery-->
+    <script src="scripts/jquery/jquery-1.11.3.min.js"></script>
+    <script src="scripts/jquery/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="stylesheet" href="css/jquery/jquery.mobile-1.4.5.min.css">
+
+    <!--genel css-->
+    <link rel="stylesheet" href="css/style.mobile.css" />
+    <link rel="stylesheet" href="css/style.css">
+
+    <!--iscroll-->
+    <link rel="stylesheet" href="css/iscroll/iscrollCustom.css">
+    <script type="text/javascript" src="scripts/iscroll/iscroll.js"></script>
+
+    <!--audio player-->
+    <script src="scripts/jplayer/jquery.jplayer.min.js"></script>
+    <link rel="stylesheet" href="css/jplayer/pink.flag/css/jplayer.pink.flag.min.css">
+
+    <!-- must-have, which will be created by cordova prepare/build -->
+    <script type="text/javascript" src="cordova.js"></script>
+
+    <script src="scripts/winstore-jscompat.js"></script>
+    <!--admob-->
+    <script>
+        (function () {
+            if ("-ms-user-select" in document.documentElement.style && navigator.userAgent.match(/IEMobile\/10\.0/)) {
+                var msViewportStyle = document.createElement("style");
+                msViewportStyle.appendChild(
+                  document.createTextNode("@-ms-viewport{width:auto!important}")
+                );
+                document.getElementsByTagName("head")[0].appendChild(msViewportStyle);
+            }
+        })();
+    </script>
+</head>
+<body>
+<!--admob-->
+<script>
+        // place our admob ad unit id here
+        var admobid = {};
+        if (/(android)/i.test(navigator.userAgent)) {
+            admobid = { // for Android
+                banner: 'ca-app-pub-6869992474017983/9375997553'
+            };
+        } else if (/(ipod|iphone|ipad)/i.test(navigator.userAgent)) {
+            admobid = { // for iOS
+                banner: 'ca-app-pub-6869992474017983/4806197152'
+            };
+        } else {
+            admobid = { // for Windows Phone
+                banner: 'ca-app-pub-6869992474017983/8878394753'
+            };
+        }
+
+        function onDeviceReady() {
+            if (!AdMob) { alert('admob plugin not ready'); return; }
+
+            initAd();
+
+            // display a banner at startup
+            createSelectedBanner();
+        }
+
+        function initAd() {
+            AdMob.setOptions({
+                // width: integer, // valid when set adSize 'CUSTOM'
+                // height: integer, // valid when set adSize 'CUSTOM'
+                position: AdMob.AD_POSITION.BOTTOM_CENTER,
+                // offsetTopBar: false, // avoid overlapped by status bar, for iOS7+
+                bgColor: 'black', // color name, or '#RRGGBB'
+                // x: integer,    // valid when set position to 0 / POS_XY
+                // y: integer,    // valid when set position to 0 / POS_XY
+                isTesting: false, // set to true, to receiving test ad for testing purpose
+                // autoShow: true // auto show interstitial ad when loaded, set to false if prepare/show
+            });
+
+            // new events, with variable to differentiate: adNetwork, adType, adEvent
+            $(document).on('onAdFailLoad', function (data) {
+                //alert('error: ' + data.error +
+                //    ', reason: ' + data.reason +
+                //    ', adNetwork:' + data.adNetwork +
+                //    ', adType:' + data.adType +
+                //    ', adEvent:' + data.adEvent); // adType: 'banner', 'interstitial', etc.
+            });
+            $(document).on('onAdLoaded', function (data) { });
+            $(document).on('onAdPresent', function (data) { });
+            $(document).on('onAdLeaveApp', function (data) { });
+            $(document).on('onAdDismiss', function (data) { });
+
+            function createSelectedBanner() {
+                AdMob.createBanner({
+                    adId: admobid.banner
+                });
+            }
+
+            // create a banner on startup
+            createSelectedBanner();
+
+            $(document).on('backbutton', function () {
+                if (window.confirm('Are you sure to quit?')) navigator.app.exitApp();
+            });
+
+            $(document).on('resume', function () {
+                AdMob.showInterstitial();
+            });
+        }
+
+        $(document).ready(function () {
+            // on mobile device, we must wait the 'deviceready' event fired by cordova
+            if (/(ipad|iphone|ipod|android|windows phone)/i.test(navigator.userAgent)) {
+                document.addEventListener('deviceready', onDeviceReady, false);
+            } else {
+                onDeviceReady();
+            }
+        });
+
+    </script>
+
+<!--Tüm radyo listesi-->
+<div class="demo-wrapper" data-role="page" id="pageAllRadios">
+    <div class="panel left" data-role="panel" data-position="left" data-display="push" id="panelAllRadios"></div>
+
+    <div class="header" data-role="header" id="headerAllRadios">
+        <span class="open left"><a href="#panelAllRadios">&#61641;</a></span>
+        <span class="title" id="spanAllCategoryName">Tüm Radyolar</span>
+    </div>
+
+    <div class="content" data-role="content" data-theme="a" style="height: 100%;">
+        <div class="wrapperList" id="wrapperRadioList">
+            <div id="scroller1">
+                <ul data-role="listview" data-filter="true" data-filter-placeholder="Tüm Radyolarda Ara" id="listViewAllRadio"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--radyo play-->
+<div class="demo-wrapper" data-role="page" id="pageRadioPlay">
+
+    <div class="header" data-role="header" id="headerRadioPlay">
+        <span class="title" id="spanCategoryName"></span>
+        <a href="#" data-rel="back" style="margin-top:7px;" data-transition="slide" data-direction="reverse"
+           class="ui-btn-left ui-btn ui-icon-back ui-btn-icon-notext ui-shadow ui-corner-all" data-role="button" role="button">Back</a>
+    </div>
+
+    <div data-role="content" id="radioPlayerContent" align="center">
+        <img id="imgRadioStation" style="width:96px;height:96px;" />
+        <!--player-->
+        <div id="jplayerRadio" class="jp-jplayer"></div>
+        <div id="jp_container_1" class="jp-audio" role="application" aria-label="media player">
+            <div class="jp-type-single">
+                <div class="jp-gui jp-interface">
+                    <div class="jp-volume-controls">
+                        <button class="jp-mute" role="button" tabindex="0">mute</button>
+                        <button class="jp-volume-max" role="button" tabindex="0">max volume</button>
+                        <div class="jp-volume-bar">
+                            <div class="jp-volume-bar-value"></div>
+                        </div>
+                    </div>
+                    <div class="jp-controls-holder">
+                        <div class="jp-controls">
+                            <button class="jp-play" role="button" tabindex="0">play</button>
+                            <button class="jp-stop" role="button" tabindex="0">stop</button>
+                        </div>
+                        <div class="jp-progress">
+                            <div class="jp-seek-bar">
+                                <div class="jp-play-bar"></div>
+                            </div>
+                        </div>
+                        <div class="jp-current-time" role="timer" aria-label="time">&nbsp;</div>
+                        <div class="jp-duration" role="timer" aria-label="duration">&nbsp;</div>
+                        <div class="jp-toggles">
+                            <button class="jp-repeat" role="button" tabindex="0">repeat</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="jp-details">
+                    <div class="jp-title" aria-label="title">&nbsp;</div>
+                </div>
+            </div>
+        </div>
+        <!--player bitti-->
+    </div>
+</div>
+
+<!--Kategoriler-->
+<div class="demo-wrapper" data-role="page" id="pageCategories">
+    <div class="panel left" data-role="panel" data-position="left" data-display="push" id="panelCategories"></div>
+
+    <div class="header" data-role="header" id="headerCategories">
+        <span class="open left"><a href="#panelCategories">&#61641;</a></span>
+        <span class="title">Kategoriler</span>
+    </div>
+
+    <div class="content" data-role="content"  style="height: 100%;  margin: 0; padding: 0;">
+        <div class="wrapperList" id="wrapperCategoriesList">
+            <div id="scroller2">
+                <ul data-role="listview" data-count-theme="b" id="listViewCategories"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--script-->
+<script src="scripts/common.js"></script>
+<script src="scripts/modelsAndVariables.js"></script>
+<script src="scripts/mainOperations.js"></script>
+<script src="scripts/pageAllRadios.js"></script>
+<script src="scripts/pageRadioPlay.js"></script>
+<script src="scripts/pageCategories.js"></script>
+</body>
+</html>
